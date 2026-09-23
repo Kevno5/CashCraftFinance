@@ -4,6 +4,7 @@ using CashCraft.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CashCraft.Migrations
 {
     [DbContext(typeof(CashCraftDbContext))]
-    partial class CashCraftDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260923083652_AddUserRelationshipToAccount")]
+    partial class AddUserRelationshipToAccount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -34,24 +37,12 @@ namespace CashCraft.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal?>("CreditLimit")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<decimal>("CurrentBalance")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal?>("MinimumPayment")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("PaymentDueDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Subtype")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Type")
