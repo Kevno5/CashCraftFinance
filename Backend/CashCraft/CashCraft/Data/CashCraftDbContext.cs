@@ -20,6 +20,10 @@ namespace CashCraft.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+            modelBuilder.Entity<User>()
+    .HasIndex(u => u.Email)
+    .IsUnique();
             modelBuilder.Entity<Account>()
                 .Property(a => a.CurrentBalance)
                 .HasPrecision(18, 2);
