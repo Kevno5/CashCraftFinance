@@ -24,5 +24,22 @@ namespace CashCraft.Controllers
             if (result.IsConflict) return Conflict(new { message = result.Message });
             return BadRequest(new { message = result.Message });
         }
+                [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginRequest request)
+        {
+            var result = await _auth.LoginAsync(request);
+
+            if (!result.Success)
+                return Unauthorized(new { message = result.Message });
+
+            return Ok(new
+            {
+                message = result.Message,
+                userId = result.UserId,
+                name = result.Name,
+                email = result.Email
+            });
+        }
+
     }
 }
