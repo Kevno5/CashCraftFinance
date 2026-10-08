@@ -35,5 +35,22 @@ namespace CashCraft.Services
 
             return new RegisterResult(true, "Registration successful.", false);
         }
+                public async Task<LoginResult> LoginAsync(LoginRequest request)
+        {
+            var email = request.Email.Trim().ToLowerInvariant();
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+                return new LoginResult(false, "Invalid email or password.", null, null, null);
+
+            var check = _hasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
+
+            if (check == PasswordVerificationResult.Failed)
+                return new LoginResult(false, "Invalid email or password.", null, null, null);
+
+            return new LoginResult(true, "Login successful.", user.Id, user.Name, user.Email);
+        }
+
+    
     }
 }
