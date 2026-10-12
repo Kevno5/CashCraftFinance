@@ -10,11 +10,13 @@ namespace CashCraft.Services
     public class AuthService : IAuthService
     {
         private readonly CashCraftDbContext _db;
+        private readonly IJwtTokenService _jwt;
         private readonly PasswordHasher<User> _hasher = new();
 
-        public AuthService(CashCraftDbContext db)
+        public AuthService(CashCraftDbContext db, IJwtTokenService jwt)
         {
             _db = db;
+            _jwt = jwt;
         }
 
         public async Task<RegisterResult> RegisterAsync(RegisterRequest request)
@@ -35,22 +37,22 @@ namespace CashCraft.Services
 
             return new RegisterResult(true, "Registration successful.", false);
         }
-                public async Task<LoginResult> LoginAsync(LoginRequest request)
+
+        public async Task<LoginResult> LoginAsync(LoginRequest request)
         {
             var email = request.Email.Trim().ToLowerInvariant();
             var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
 
             if (user == null)
-                return new LoginResult(false, "Invalid email or password.", null, null, null);
+                return new LoginResult(false, "Invalid email or password.", null, null, null, null);
 
             var check = _hasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
 
             if (check == PasswordVerificationResult.Failed)
-                return new LoginResult(false, "Invalid email or password.", null, null, null);
+                return new LoginResult(false, "Invalid email or password.", null, null, null, null);
 
-            return new LoginResult(true, "Login successful.", user.Id, user.Name, user.Email);
+            var token = _jwt.CreateToken(user);
+            return new LoginResult(true, "Login successful.", user.Id, user.Name, user.Email, token);
         }
-
-    
     }
 }

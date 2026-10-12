@@ -11,5 +11,5 @@ namespace CashCraft.DTOs
         public string Password { get; set; } = string.Empty;
     }
 
-    public record LoginResult(bool Success, string Message, int? UserId, string? Name, string? Email);
+        public record LoginResult(bool Success, string Message, int? UserId, string? Name, string? Email, string? Token);
 }

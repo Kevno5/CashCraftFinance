@@ -32,9 +32,10 @@ namespace CashCraft.Controllers
             if (!result.Success)
                 return Unauthorized(new { message = result.Message });
 
-            return Ok(new
+                        return Ok(new
             {
                 message = result.Message,
+                token = result.Token,
                 userId = result.UserId,
                 name = result.Name,
                 email = result.Email
