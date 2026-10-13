@@ -1,0 +1,94 @@
+.register-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #0f1314;
+}
+
+.register-container {
+  width: 360px;
+  padding: 40px;
+  background-color: #191e20;
+  border: 1px solid #252b2d;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* Space reserved for the real logo */
+.register-logo-space {
+  height: 90px;
+  margin-bottom: 20px;
+}
+
+/* Main title */
+.register-container h1 {
+  text-align: center;
+  color: #ffffff;
+  margin: 0 0 10px 0;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+/* Subtitle */
+.register-subtitle {
+  text-align: center;
+  color: #8b9495;
+  margin: 0 0 35px 0;
+  font-size: 13px;
+}
+
+/* Form */
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Input boxes */
+.register-form input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  background-color: #0d1112;
+  border: 1px solid #252b2d;
+  border-radius: 8px;
+  color: #f5f5f5;
+  font-size: 14px;
+}
+
+/* Placeholder text */
+.register-form input::placeholder {
+  color: #a0a6a7;
+}
+
+/* When user clicks inside an input */
+.register-form input:focus {
+  outline: none;
+  border-color: #18d89a;
+}
+
+/* Create Account button */
+.register-form button {
+  margin-top: 8px;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background-color: #18d89a;
+  color: #000000;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Button hover */
+.register-form button:hover {
+  background-color: #14c98e;
+}
+
+.register-error {
+  color: #ff6b6b;
+  font-size: 13px;
+  text-align: center;
+  margin: -5px 0 0 0;
+}
