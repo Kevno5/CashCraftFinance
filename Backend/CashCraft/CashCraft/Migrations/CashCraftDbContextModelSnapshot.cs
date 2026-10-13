@@ -37,7 +37,7 @@ namespace CashCraft.Migrations
                     b.Property<decimal?>("CreditLimit")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("CurrentBalance")
+                    b.Property<decimal?>("CurrentBalance")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
@@ -50,6 +50,9 @@ namespace CashCraft.Migrations
 
                     b.Property<DateTime?>("PaymentDueDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("PlaidAccountId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Subtype")
                         .HasColumnType("nvarchar(max)");
@@ -94,6 +97,35 @@ namespace CashCraft.Migrations
                     b.ToTable("Budgets");
                 });
 
+            modelBuilder.Entity("CashCraft.Models.PlaidItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccessToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ItemId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TransactionCursor")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PlaidItem");
+                });
+
             modelBuilder.Entity("CashCraft.Models.Transaction", b =>
                 {
                     b.Property<int>("Id")
@@ -116,7 +148,9 @@ namespace CashCraft.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
-                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PlaidTransactionId")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -176,6 +210,17 @@ namespace CashCraft.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CashCraft.Models.PlaidItem", b =>
+                {
+                    b.HasOne("CashCraft.Models.User", "User")
+                        .WithMany("PlaidItems")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("CashCraft.Models.Transaction", b =>
                 {
                     b.HasOne("CashCraft.Models.Account", "Account")
@@ -197,6 +242,8 @@ namespace CashCraft.Migrations
                     b.Navigation("Accounts");
 
                     b.Navigation("Budgets");
+
+                    b.Navigation("PlaidItems");
                 });
 #pragma warning restore 612, 618
         }

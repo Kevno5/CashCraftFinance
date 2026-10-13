@@ -18,8 +18,12 @@ namespace CashCraft.Data
 
         public DbSet<Budget> Budgets => Set<Budget>();
 
+        public DbSet<PlaidItem> PlaidItems => Set<PlaidItem>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<PlaidItem>()
+                .ToTable("PlaidItem");
 
             modelBuilder.Entity<User>()
     .HasIndex(u => u.Email)

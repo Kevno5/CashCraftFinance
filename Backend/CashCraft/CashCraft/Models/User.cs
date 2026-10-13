@@ -11,6 +11,7 @@
 
         public List<Account> Accounts { get; set; } = new();
 
-        public List<Budget> Budgets { get; set; }
+        public List<Budget>? Budgets { get; set; }
+        public List<PlaidItem> PlaidItems { get; set; } = new();
     }
 }
