@@ -19,6 +19,7 @@ builder.Services.AddDbContext<CashCraftDbContext>(options =>
 builder.Services.AddScoped<IAccountsService, AccountService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAccountsService, AccountService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
 
 builder.Services.AddHttpClient<PlaidService>(client =>
 {
