@@ -4,13 +4,15 @@
     {
         public int Id { get; set; }
 
+        public string? PlaidAccountId { get; set; }
+
         public string Name { get; set; } = string.Empty;
 
         public string Type { get; set; } = string.Empty;
 
         public string? Subtype { get; set; }
 
-        public decimal CurrentBalance { get; set; }
+        public decimal? CurrentBalance { get; set; }
 
         public decimal? AvailableBalance { get; set; }
 
