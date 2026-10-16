@@ -1,4 +1,8 @@
+import { useEffect, useState } from "react";
+import { getAccounts, getTransactions, type Account, type Transaction } from "../api";
 import "./Dashboard.css";
+
+const USER_ID = 1; // TODO: replace with logged-in user after login is done
 
 // ---- Icons (inline SVG, no extra dependency needed) ----
 const Icon = {
@@ -76,25 +80,12 @@ const nav = [
   { label: "Settings", icon: Icon.Gear },
 ];
 
-const spendingCategories = [
-  { label: "Groceries", amount: 420, color: "#2ee6a6" },
-  { label: "Dining Out", amount: 300, color: "#4d8bf5" },
-  { label: "Transport", amount: 240, color: "#f5a623" },
-  { label: "Entertainment", amount: 240, color: "#f5556c" },
-];
-
 const monthlyFlow = [
   { month: "Mar", income: 60, expenses: 40 },
   { month: "Apr", income: 65, expenses: 42 },
   { month: "May", income: 78, expenses: 55 },
   { month: "Jun", income: 85, expenses: 48 },
   { month: "Jul", income: 92, expenses: 38 },
-];
-
-const recentActivity = [
-  { name: "Netflix Subscription", meta: "Entertainment • Today", amount: -15.49, icon: Icon.Card },
-  { name: "Trader Joe's", meta: "Groceries • Yesterday", amount: -84.2, icon: Icon.Cart },
-  { name: "Employer Payroll", meta: "Income • Jul 15", amount: 2450.0, icon: Icon.Briefcase },
 ];
 
 const upcomingBills = [
@@ -107,7 +98,7 @@ function currency(n: number) {
   return `${sign}$${Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function DonutChart({ data }: { data: typeof spendingCategories }) {
+function DonutChart({ data }: { data: { label: string; amount: number; color: string }[] }) {
   const total = data.reduce((s, d) => s + d.amount, 0);
   const radius = 46;
   const circumference = 2 * Math.PI * radius;
@@ -157,6 +148,40 @@ function FlowChart({ data }: { data: typeof monthlyFlow }) {
 }
 
 export default function Dashboard() {
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [error, setError] = useState("");
+
+  // Loaded separately so accounts still show if the transactions request fails
+  useEffect(() => {
+    getAccounts(USER_ID).then(setAccounts).catch((e) => setError(e.message));
+    getTransactions(USER_ID).then(setTransactions).catch((e) => setError(e.message));
+  }, []);
+
+  // Net worth: credit cards count as debt
+  const netWorth = accounts.reduce((sum, a) => {
+    const bal = a.currentBalance ?? 0;
+    return a.type === "credit" ? sum - bal : sum + bal;
+  }, 0);
+
+  // Spending by category (Plaid: positive amount = money spent)
+  const colors = ["#2ee6a6", "#4d8bf5", "#f5a623", "#f5556c", "#a06cf5"];
+  const byCategory = new Map<string, number>();
+  transactions.filter((t) => t.amount > 0).forEach((t) => {
+    const c = t.category ?? "Other";
+    byCategory.set(c, (byCategory.get(c) ?? 0) + t.amount);
+  });
+  const spendingCategories = [...byCategory].map(([label, amount], i) => ({
+    label,
+    amount,
+    color: colors[i % colors.length],
+  }));
+
+  // 5 most recent transactions
+  const recentActivity = [...transactions]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 5);
+
   return (
     <div className="cc-shell">
       <aside className="cc-sidebar">
@@ -193,11 +218,12 @@ export default function Dashboard() {
           </div>
           <button className="cc-btn-primary">Link Bank Account</button>
         </header>
+        {error && <p style={{ color: "red" }}>{error}</p>}
 
         <section className="cc-top-row">
           <div className="cc-card cc-networth">
             <span className="cc-eyebrow">Net Worth</span>
-            <div className="cc-networth-value">$142,405.12</div>
+            <div className="cc-networth-value">{currency(netWorth)}</div>
             <span className="cc-subtext">+4.8% from last month</span>
           </div>
 
@@ -260,17 +286,20 @@ export default function Dashboard() {
           <div className="cc-card">
             <h2>Recent Activity</h2>
             <ul className="cc-activity-list">
-              {recentActivity.map((a) => (
-                <li key={a.name}>
+              {recentActivity.map((t) => (
+                <li key={t.id}>
                   <span className="cc-activity-icon">
-                    <a.icon />
+                    <Icon.Card />
                   </span>
                   <div className="cc-activity-text">
-                    <div className="cc-activity-name">{a.name}</div>
-                    <div className="cc-activity-meta">{a.meta}</div>
+                    <div className="cc-activity-name">{t.name}</div>
+                    <div className="cc-activity-meta">
+                      {t.category ?? "Other"} • {new Date(t.date).toLocaleDateString()}
+                    </div>
                   </div>
-                  <span className={`cc-activity-amount ${a.amount > 0 ? "positive" : ""}`}>
-                    {currency(a.amount)}
+                  {/* Plaid stores spending as positive, so flip the sign for display */}
+                  <span className={`cc-activity-amount ${t.amount < 0 ? "positive" : ""}`}>
+                    {currency(-t.amount)}
                   </span>
                 </li>
               ))}
