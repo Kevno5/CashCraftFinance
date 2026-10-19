@@ -92,3 +92,14 @@
   text-align: center;
   margin: -5px 0 0 0;
 }
+
+.register-login-link {
+  text-align: center;
+  color: #ffffff;
+  font-size: 13px;
+  text-decoration: underline;
+}
+
+.register-login-link:hover {
+  color: #18d89a;
+}
