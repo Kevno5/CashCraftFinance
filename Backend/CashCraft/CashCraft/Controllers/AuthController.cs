@@ -20,19 +20,28 @@ namespace CashCraft.Controllers
         {
             var result = await _auth.RegisterAsync(request);
 
-            if (result.Success) return StatusCode(201, new { message = result.Message });
-            if (result.IsConflict) return Conflict(new { message = result.Message });
-            return BadRequest(new { message = result.Message });
+            if (result.Success)
+                return StatusCode(201, new MessageResponse(result.Message));
+
+            var errors = result.Field == null
+                ? null
+                : new Dictionary<string, string[]> { [result.Field] = new[] { result.Message } };
+
+            if (result.IsConflict)
+                return Conflict(new MessageResponse(result.Message, errors));
+
+            return BadRequest(new MessageResponse(result.Message, errors));
         }
-                [HttpPost("login")]
+
+        [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest request)
         {
             var result = await _auth.LoginAsync(request);
 
             if (!result.Success)
-                return Unauthorized(new { message = result.Message });
+                return Unauthorized(new MessageResponse(result.Message));
 
-                        return Ok(new
+            return Ok(new
             {
                 message = result.Message,
                 token = result.Token,
@@ -41,6 +50,5 @@ namespace CashCraft.Controllers
                 email = result.Email
             });
         }
-
     }
 }
