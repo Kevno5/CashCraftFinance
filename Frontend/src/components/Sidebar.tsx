@@ -1,4 +1,6 @@
 import "./Dashboard.css";
+import { NavLink } from "react-router-dom";
+import { useAuth } from "../Context/AuthContext";
 
 // Shared sidebar for the new pages. Dashboard.tsx still has its own copy;
 // switch it over to this component when routing is added.
@@ -52,21 +54,17 @@ const Icon = {
   ),
 };
 
-const nav: { label: Page; icon: () => React.JSX.Element }[] = [
-  { label: "Dashboard", icon: Icon.Grid },
-  { label: "Transactions", icon: Icon.List },
-  { label: "Budgets", icon: Icon.Pie },
-  { label: "Goals", icon: Icon.Target },
-  { label: "Insights", icon: Icon.Chart },
-  { label: "Settings", icon: Icon.Gear },
+const nav: { label: Page; path:string; icon: () => React.JSX.Element }[] = [
+  { label: "Dashboard",path: "/dashboard", icon: Icon.Grid },
+  { label: "Transactions", path: "/transactions", icon: Icon.List },
+  { label: "Budgets", path: "/budgets", icon: Icon.Pie },
+  { label: "Goals", path: "/goals", icon: Icon.Target },
+  { label: "Insights", path: "/insights", icon: Icon.Chart },
+  { label: "Settings", path: "/settings", icon: Icon.Gear },
 ];
 
-type SidebarProps = {
-  active: Page;
-  onNavigate?: (page: Page) => void;
-};
-
-export default function Sidebar({ active, onNavigate }: SidebarProps) {
+export default function Sidebar() {
+  const { user } = useAuth();
   return (
     <aside className="cc-sidebar">
       <div className="cc-logo">
@@ -77,23 +75,27 @@ export default function Sidebar({ active, onNavigate }: SidebarProps) {
       </div>
 
       <nav className="cc-nav">
-        {nav.map((item) => (
-          <button
-            key={item.label}
-            className={`cc-nav-item ${item.label === active ? "active" : ""}`}
-            onClick={() => onNavigate?.(item.label)}
-          >
-            <item.icon />
-            {item.label}
-          </button>
-        ))}
-      </nav>
+  {nav.map((item) => (
+    <NavLink
+      key={item.label}
+      to={item.path}
+      className={({ isActive }) =>
+        `cc-nav-item ${isActive ? "active" : ""}`
+      }
+    >
+      <item.icon />
+      {item.label}
+    </NavLink>
+  ))}
+</nav>
 
       <div className="cc-user">
         <div className="cc-avatar" />
         <div>
           {/* TODO: show the logged-in user once login is merged */}
-          <div className="cc-user-name">Alex Mercer</div>
+          <div className="cc-user-name">
+            {user?.name ?? "Guest"}
+          </div>
           <div className="cc-user-plan">PRO Creator Plan</div>
         </div>
       </div>

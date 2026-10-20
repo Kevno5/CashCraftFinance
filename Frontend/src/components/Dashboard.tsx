@@ -158,32 +158,7 @@ function FlowChart({ data }: { data: typeof monthlyFlow }) {
 
 export default function Dashboard() {
   return (
-    <div className="cc-shell">
-      <aside className="cc-sidebar">
-        <div className="cc-logo">
-          <span className="cc-logo-mark">
-            <Icon.Gear />
-          </span>
-          Cash Craft
-        </div>
 
-        <nav className="cc-nav">
-          {nav.map((item) => (
-            <button key={item.label} className={`cc-nav-item ${item.active ? "active" : ""}`}>
-              <item.icon />
-              {item.label}
-            </button>
-          ))}
-        </nav>
-
-        <div className="cc-user">
-          <div className="cc-avatar" />
-          <div>
-            <div className="cc-user-name">Alex Mercer</div>
-            <div className="cc-user-plan">PRO Creator Plan</div>
-          </div>
-        </div>
-      </aside>
 
       <main className="cc-main">
         <header className="cc-header">
@@ -296,6 +271,5 @@ export default function Dashboard() {
           </div>
         </section>
       </main>
-    </div>
   );
 }
