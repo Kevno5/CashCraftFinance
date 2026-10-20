@@ -1,4 +1,5 @@
 import {useState} from "react";
+import { useNavigate } from "react-router-dom";
 import "./Register.css";
 
 function Register() {
@@ -6,29 +7,59 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleRegister = () => {
-    setError("");
+  const handleRegister = async () => {
+  setError("");
 
-    if (!username || !email || !password) {
-      setError("Please fill in all fields.");
-      return;
-    }
+  if (!username.trim() || !email.trim() || !password) {
+    setError("Please fill in all fields.");
+    return;
+  }
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
+  if (password.length < 8) {
+    setError("Password must be at least 8 characters.");
+    return;
+  }
 
-    if (!email.includes("@")) {
+  if (!email.includes("@")) {
     setError("Please enter a valid email address.");
     return;
+  }
+
+  try {
+    const response = await fetch(
+      "https://localhost:7253/api/auth/register",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: username.trim(),
+          email: email.trim(),
+          password
+        })
+      }
+    );
+
+    if (!response.ok) {
+      if (response.status === 409) {
+        setError("An account with this email already exists.");
+      } else {
+        setError("Registration failed. Please try again.");
+      }
+      return;
     }
 
-    console.log("Username:", username);
-    console.log("Email:", email);
-    console.log("Password:", password);
-  };
+    // Registration successful!
+    navigate("/login");
+
+  } catch (err) {
+    console.error("Registration request failed:", err);
+    setError("Unable to connect to the backend.");
+  }
+};
 
   return (
     <div className="register-page">
