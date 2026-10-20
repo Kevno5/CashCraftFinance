@@ -1,0 +1,139 @@
+/* Extra styles for the Goals and Settings pages. Reuses the variables from Dashboard.css (.cc-shell). */
+
+/* Undo the Vite template defaults in index.css (centered text, dark heading color) */
+.cc-shell { text-align: left; }
+.cc-shell h1,
+.cc-shell h2 { color: var(--text); font-family: inherit; letter-spacing: normal; }
+
+.cc-page-stats {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* ---------- Forms ---------- */
+.cc-form { margin-bottom: 20px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+.cc-form h2 { margin-bottom: 0; }
+
+.cc-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  width: 100%;
+}
+
+.cc-form label { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; color: var(--muted); }
+
+.cc-form input,
+.cc-select {
+  background: #0f1113;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color-scheme: dark;
+}
+
+.cc-form input:focus,
+.cc-select:focus { outline: none; border-color: var(--accent); }
+
+.cc-form-error { color: var(--danger); font-size: 13px; margin: 0; }
+
+.cc-btn-ghost {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+.cc-btn-ghost:hover { color: var(--danger); background: #1b1e21; }
+
+.cc-btn-secondary,
+.cc-btn-danger {
+  background: transparent;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+.cc-btn-danger { color: var(--danger); border-color: rgba(245, 85, 108, 0.4); }
+.cc-btn-secondary:disabled,
+.cc-btn-danger:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ---------- Goals ---------- */
+.cc-goal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.cc-goal-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; }
+.cc-goal-top h2 { margin: 0; }
+
+.cc-goal-amounts { margin-bottom: 10px; }
+.cc-goal-current { font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.cc-progress { height: 8px; background: #1b1e21; border-radius: 999px; overflow: hidden; }
+.cc-progress-fill { height: 100%; background: #4d8bf5; border-radius: 999px; transition: width 0.3s; }
+.cc-progress-fill.done { background: var(--accent); }
+
+.cc-goal-footer { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--muted); }
+
+.cc-empty { color: var(--muted); font-size: 14px; text-align: center; padding: 40px 20px; }
+
+/* ---------- Settings ---------- */
+.cc-settings { display: flex; flex-direction: column; gap: 16px; max-width: 760px; }
+.cc-settings .cc-form { margin-bottom: 0; }
+
+.cc-setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--panel-border);
+}
+.cc-setting-row:first-of-type { border-top: none; padding-top: 0; }
+.cc-setting-title { font-size: 13.5px; font-weight: 500; margin-bottom: 2px; }
+
+.cc-toggle {
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  border: none;
+  background: #2a2e33;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.cc-toggle.on { background: var(--accent); }
+
+.cc-toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+}
+.cc-toggle.on .cc-toggle-knob { transform: translateX(18px); }
+
+@media (max-width: 980px) {
+  .cc-page-stats { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 640px) {
+  .cc-page-stats { grid-template-columns: 1fr; }
+  .cc-setting-row { flex-direction: column; align-items: flex-start; }
+}
