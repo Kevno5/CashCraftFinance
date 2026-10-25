@@ -4,6 +4,7 @@ import Dashboard from "./components/Dashboard";
 import Register from "./components/Register";
 import Settings from "./components/Settings";
 import Login from "./components/Login/Login";
+import Goals from "./components/Goals";
 import { AuthProvider } from "./Context/AuthContext";
 import AppLayout from "./components/Layout/appLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -20,6 +21,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard/>}/>
+            <Route path="/goals" element={<Goals />} />
             <Route path="/settings" element={<Settings/>}/>
           </Route>
         </Route>

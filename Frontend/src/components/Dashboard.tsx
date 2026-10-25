@@ -67,15 +67,6 @@ const Icon = {
   ),
 };
 
-const nav = [
-  { label: "Dashboard", icon: Icon.Grid, active: true },
-  { label: "Transactions", icon: Icon.List },
-  { label: "Budgets", icon: Icon.Pie },
-  { label: "Goals", icon: Icon.Target },
-  { label: "Insights", icon: Icon.Chart },
-  { label: "Settings", icon: Icon.Gear },
-];
-
 const spendingCategories = [
   { label: "Groceries", amount: 420, color: "#2ee6a6" },
   { label: "Dining Out", amount: 300, color: "#4d8bf5" },

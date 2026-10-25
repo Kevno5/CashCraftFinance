@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./Dashboard.css";
 import "./Pages.css";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 
 // TODO: load from GET /api/Users/{userId} (or the login response) once login is merged
