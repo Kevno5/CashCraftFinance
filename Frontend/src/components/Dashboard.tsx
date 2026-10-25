@@ -1,4 +1,11 @@
 import "./Dashboard.css";
+import { useAuth } from "../Context/AuthContext";
+import { useEffect, useState } from "react";
+import { getAccountsByUserId } from "../api/accountsApi";
+import { getTransactionsByUserId } from "../api/transactionsApi";
+import type { Account } from "../types/account";
+import type { Transaction } from "../types/transactions";
+import { classifyTransaction } from "../utils/transactonUtils";
 
 // ---- Icons (inline SVG, no extra dependency needed) ----
 const Icon = {
@@ -67,39 +74,18 @@ const Icon = {
   ),
 };
 
-const spendingCategories = [
-  { label: "Groceries", amount: 420, color: "#2ee6a6" },
-  { label: "Dining Out", amount: 300, color: "#4d8bf5" },
-  { label: "Transport", amount: 240, color: "#f5a623" },
-  { label: "Entertainment", amount: 240, color: "#f5556c" },
-];
 
-const monthlyFlow = [
-  { month: "Mar", income: 60, expenses: 40 },
-  { month: "Apr", income: 65, expenses: 42 },
-  { month: "May", income: 78, expenses: 55 },
-  { month: "Jun", income: 85, expenses: 48 },
-  { month: "Jul", income: 92, expenses: 38 },
-];
+type SpendingCategory = {
+    label: string;
+    amount: number;
+    color: string;
+};
 
-const recentActivity = [
-  { name: "Netflix Subscription", meta: "Entertainment • Today", amount: -15.49, icon: Icon.Card },
-  { name: "Trader Joe's", meta: "Groceries • Yesterday", amount: -84.2, icon: Icon.Cart },
-  { name: "Employer Payroll", meta: "Income • Jul 15", amount: 2450.0, icon: Icon.Briefcase },
-];
-
-const upcomingBills = [
-  { name: "Adobe Creative Cloud", meta: "In 3 days", amount: 54.99, icon: Icon.Card },
-  { name: "Gym Membership", meta: "In 5 days", amount: 30.0, icon: Icon.Chart },
-];
-
-function currency(n: number) {
-  const sign = n < 0 ? "-" : n > 0 ? "+" : "";
-  return `${sign}$${Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function DonutChart({ data }: { data: typeof spendingCategories }) {
+function DonutChart({ data }: { data: SpendingCategory[] }) {
   const total = data.reduce((s, d) => s + d.amount, 0);
+  if (total === 0){
+    return <p>No spending this month</p>
+  }
   const radius = 46;
   const circumference = 2 * Math.PI * radius;
   let offsetAcc = 0;
@@ -130,15 +116,31 @@ function DonutChart({ data }: { data: typeof spendingCategories }) {
   );
 }
 
-function FlowChart({ data }: { data: typeof monthlyFlow }) {
-  const max = Math.max(...data.flatMap((d) => [d.income, d.expenses]));
+type MonthlyFlow = {
+    month: string;
+    income: number;
+    expenses: number;
+};
+
+function FlowChart({ data }: { data: MonthlyFlow[] }) {
+  const max = Math.max(
+    1,
+    ...data.flatMap((d) => [d.income, d.expenses])
+  );
+
   return (
     <div className="flow-chart">
       {data.map((d) => (
         <div className="flow-col" key={d.month}>
           <div className="flow-bars">
-            <div className="flow-bar income" style={{ height: `${(d.income / max) * 100}%` }} />
-            <div className="flow-bar expenses" style={{ height: `${(d.expenses / max) * 100}%` }} />
+            <div
+              className="flow-bar income"
+              style={{ height: `${(d.income / max) * 100}%` }}
+            />
+            <div
+              className="flow-bar expenses"
+              style={{ height: `${(d.expenses / max) * 100}%` }}
+            />
           </div>
           <span className="flow-label">{d.month}</span>
         </div>
@@ -147,14 +149,163 @@ function FlowChart({ data }: { data: typeof monthlyFlow }) {
   );
 }
 
+
 export default function Dashboard() {
+  const { user } = useAuth();
+
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if(!user) {
+      setAccounts([]);
+      setTransactions([]);
+      setLoading(false);
+      return
+    }
+
+    let cancelled = false;
+
+    async function loadDashboardData() {
+      setLoading(false);
+      setError("");
+
+      try {
+        const [accountsData, transactionsData] = await Promise.all([
+          getAccountsByUserId(user!.id),
+          getTransactionsByUserId(user!.id)
+        ]);
+        console.log("transactions", transactionsData)
+
+        if(!cancelled) {
+          setAccounts(accountsData);
+          setTransactions(transactionsData);
+        }
+      } catch (err) {
+        console.error(err);
+
+        if(!cancelled) {
+          setError("Failed to load dashboard data.");
+        }
+      } finally {
+        if(!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    
+
+    loadDashboardData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  const classifiedTransactions = transactions.map(classifyTransaction);
+
+  const now = new Date();
+  const monthlyTransactions = classifiedTransactions.filter((t) => {
+    const date = new Date(t.date);
+
+    return (
+        date.getUTCMonth() === now.getMonth() &&
+        date.getUTCFullYear() === now.getFullYear() &&
+        t.kind === "expense"
+    );
+});
+
+  const categoryTotals = monthlyTransactions.reduce<Record<string, number>>(
+    (totals, t) => {
+        totals[t.displayCategory] =
+            (totals[t.displayCategory] || 0) + t.amount;
+
+        return totals;
+    },
+    {}
+);
+
+  const colors = [
+    "#2ee6a6",
+    "#4d8bf5",
+    "#f5a623",
+    "#f5556c",
+    "#a78bfa",
+    "#22d3ee",
+  ];
+
+  const spendingCategories = Object.entries(categoryTotals).map(
+    ([label, amount], index) => ({
+        label,
+        amount,
+        color: colors[index % colors.length],
+    })
+);
+
+  const monthlyFlow: MonthlyFlow[] = Array.from(
+    { length: 5 },
+    (_, index) => {
+        const monthDate = new Date(
+            now.getFullYear(),
+            now.getMonth() - (4 - index),
+            1
+        );
+
+        const monthTransactions = classifiedTransactions.filter((t) => {
+    const date = new Date(t.date);
+
+    return (
+        date.getUTCMonth() === monthDate.getMonth() &&
+        date.getUTCFullYear() === monthDate.getFullYear()
+    );
+});
+
+  const expenses = monthTransactions
+    .filter(t => t.kind === "expense")
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const income = monthTransactions
+    .filter(t => t.kind === "income")
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+  return {
+    month: monthDate.toLocaleString("en-US", {
+        month: "short"
+    }),
+    income,
+    expenses
+  };
+      }
+    );
+
+  const recentTransactions = [...classifiedTransactions]
+    .sort((a, b) =>
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+    )
+    .slice(0, 5);
+
+  const totalAssets = accounts
+      .filter(a => a.type === "depository" || a.type === "investment")
+      .reduce((sum, a) => sum + a.currentBalance, 0);
+
+  const totalLiablitliies = accounts
+          .filter(a => a.type === "credit" || a.type === "loan")
+          .reduce((sum, a) => sum + a.currentBalance, 0);
+
+  const netWorth = totalAssets - totalLiablitliies;
+
+
+
   return (
 
 
       <main className="cc-main">
         <header className="cc-header">
           <div>
-            <h1>Good morning, Alex</h1>
+            <h1>Good morning, {user?.name ?? "Guest"}</h1>
             <p>Here's a breakdown of your personal economy today.</p>
           </div>
           <button className="cc-btn-primary">Link Bank Account</button>
@@ -163,28 +314,32 @@ export default function Dashboard() {
         <section className="cc-top-row">
           <div className="cc-card cc-networth">
             <span className="cc-eyebrow">Net Worth</span>
-            <div className="cc-networth-value">$142,405.12</div>
-            <span className="cc-subtext">+4.8% from last month</span>
+            <div className="cc-networth-value">
+              {loading ? "Loading..." : error ? "Unavailable" : netWorth.toLocaleString("en-US", {
+                style: "currency",
+                currency: "USD"
+              })}
+            </div>
+            <span className="cc-subtext">Based on {accounts.length} linked accounts</span>
           </div>
 
           <div className="cc-card cc-stat">
-            <span className="cc-stat-label">Savings Rate</span>
+            <span className="cc-stat-label">Total Assets</span>
             <div className="cc-stat-value">
-              32.4% <span className="cc-stat-delta up">+2.1%</span>
+              {loading ? "Loading..." : error ? "Unavailable" : totalAssets.toLocaleString("en-US", {
+                style: "currency",
+                currency: "USD"
+              })}
             </div>
           </div>
 
           <div className="cc-card cc-stat">
-            <span className="cc-stat-label">Active Subs</span>
+            <span className="cc-stat-label">Total Debt</span>
             <div className="cc-stat-value">
-              $84.90<span className="cc-stat-unit">/mo</span> <span className="cc-stat-delta muted">12 active</span>
-            </div>
-          </div>
-
-          <div className="cc-card cc-stat">
-            <span className="cc-stat-label">Budget Left</span>
-            <div className="cc-stat-value">
-              $420.15 <span className="cc-stat-delta muted">8 days left</span>
+              {loading ? "Loading..." : error ? "Unavailable" : totalLiablitliies.toLocaleString("en-US", {
+                style: "currency",
+                currency: "USD"
+              })}
             </div>
           </div>
         </section>
@@ -224,42 +379,50 @@ export default function Dashboard() {
 
         <section className="cc-bottom-row">
           <div className="cc-card">
-            <h2>Recent Activity</h2>
-            <ul className="cc-activity-list">
-              {recentActivity.map((a) => (
-                <li key={a.name}>
-                  <span className="cc-activity-icon">
-                    <a.icon />
-                  </span>
-                  <div className="cc-activity-text">
-                    <div className="cc-activity-name">{a.name}</div>
-                    <div className="cc-activity-meta">{a.meta}</div>
-                  </div>
-                  <span className={`cc-activity-amount ${a.amount > 0 ? "positive" : ""}`}>
-                    {currency(a.amount)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
+    <h2>Recent Transactions</h2>
 
-          <div className="cc-card">
-            <h2>Upcoming Bills</h2>
-            <ul className="cc-activity-list">
-              {upcomingBills.map((b) => (
-                <li key={b.name}>
-                  <span className="cc-activity-icon">
-                    <b.icon />
-                  </span>
-                  <div className="cc-activity-text">
-                    <div className="cc-activity-name">{b.name}</div>
-                    <div className="cc-activity-meta">{b.meta}</div>
-                  </div>
-                  <span className="cc-activity-amount">${b.amount.toFixed(2)}</span>
+    {loading ? (
+        <p>Loading transactions...</p>
+    ) : error ? (
+        <p>{error}</p>
+    ) : recentTransactions.length === 0 ? (
+        <p>No recent transactions found.</p>
+    ) : (
+        <ul className="cc-activity-list">
+            {recentTransactions.map((t) => (
+                <li key={t.id}>
+                    <span className="cc-activity-icon">
+                        <Icon.Card />
+                    </span>
+
+                    <div className="cc-activity-text">
+                        <div className="cc-activity-name">
+                            {t.name}
+                        </div>
+
+                        <div className="cc-activity-meta">
+                          {t.displayCategory} • {new Date(t.date).toLocaleDateString("en-US", {
+                            timeZone: "UTC",
+                            month: "short",
+                            day: "numeric"
+              })}
+              </div>
+                    </div>
+
+                    <span className={`cc-activity-amount ${t.amount < 0 ? "positive" : ""}`}>
+                        {(-t.amount).toLocaleString("en-US", {
+                            style: "currency",
+                            currency: "USD",
+                            signDisplay: "always"
+                        })}
+                    </span>
                 </li>
-              ))}
-            </ul>
-          </div>
+            ))}
+        </ul>
+    )}
+</div>
+
+          
         </section>
       </main>
   );
