@@ -1,4 +1,5 @@
-﻿namespace CashCraft.Models
+﻿
+namespace CashCraft.Models
 {
     public class PlaidTransactionsResponse
     {
@@ -17,7 +18,21 @@
         public decimal amount { get; set; }
         public DateTime date { get; set; }
         public List<string>? category { get; set; }
-    
+
+        // New Plaid category information
+        public PlaidPersonalFinanceCategory? personal_finance_category
+        {
+            get;
+            set;
+        }
+    }
+
+    public class PlaidPersonalFinanceCategory
+    {
+        public string? primary { get; set; }
+        public string? detailed { get; set; }
+        public string? confidence_level { get; set; }
+        public string? version { get; set; }
     }
 
     public class RemovedTransaction

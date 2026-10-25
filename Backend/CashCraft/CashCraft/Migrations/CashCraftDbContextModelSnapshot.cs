@@ -123,7 +123,7 @@ namespace CashCraft.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PlaidItem");
+                    b.ToTable("PlaidItem", (string)null);
                 });
 
             modelBuilder.Entity("CashCraft.Models.Transaction", b =>
@@ -144,10 +144,19 @@ namespace CashCraft.Migrations
                     b.Property<string>("Category")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("CategoryConfidence")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PlaidDetailedCategory")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PlaidPrimaryCategory")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PlaidTransactionId")
