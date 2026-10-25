@@ -24,27 +24,39 @@ function formatCategory(category: string): string {
 export function classifyTransaction(
     t: Transaction
 ): ClassifiedTransaction {
-    const primary = t.plaidPrimaryCategory;
-    const detailed = t.plaidDetailedCategory;
+    const primary = t.plaidPrimaryCategory?.toUpperCase();
+    const legacyCategory = t.category?.toLowerCase() ?? "";
 
     const displayCategory = primary
         ? formatCategory(primary)
         : t.category || "Other";
 
-    // Do not treat transfers as income or spending.
+    // Transfers are not income or new expenses.
     if (
         primary === "TRANSFER_IN" ||
-        primary === "TRANSFER_OUT"
+        primary === "TRANSFER_OUT" ||
+        (!primary && legacyCategory === "transfer")
     ) {
-        return { ...t, kind: "transfer", displayCategory };
+        return {
+            ...t,
+            kind: "transfer",
+            displayCategory
+        };
     }
 
-    // Credit card and loan payments aren't new spending.
-    if (primary === "LOAN_PAYMENTS") {
-        return { ...t, kind: "payment", displayCategory };
+    // Credit card and loan payments aren't new purchases.
+    if (
+        primary === "LOAN_PAYMENTS" ||
+        (!primary && legacyCategory === "payment")
+    ) {
+        return {
+            ...t,
+            kind: "payment",
+            displayCategory: "Payments"
+        };
     }
 
-    // Income must be identified as income and be incoming.
+    // Plaid uses negative amounts for incoming funds.
     if (primary === "INCOME") {
         return {
             ...t,
@@ -53,24 +65,49 @@ export function classifyTransaction(
         };
     }
 
-    // Handle negative amounts in other categories as credits.
+    // Credits outside verified income are treated as
+    // refunds/credits rather than new income.
     if (t.amount < 0) {
-        return { ...t, kind: "refund", displayCategory };
+        return {
+            ...t,
+            kind: "refund",
+            displayCategory
+        };
     }
 
-    // If Plaid has no modern category, don't guess.
-    if (!primary || !detailed || t.amount === 0) {
-        return { ...t, kind: "review", displayCategory };
+    // Positive transactions in ordinary spending
+    // categories are expenses.
+    if (t.amount > 0) {
+        if (
+            !primary &&
+            (legacyCategory === "income" ||
+             legacyCategory === "payroll")
+        ) {
+            return {
+                ...t,
+                kind: "review",
+                displayCategory
+            };
+        }
+
+        if (!primary && !legacyCategory) {
+            return {
+                ...t,
+                kind: "review",
+                displayCategory
+            };
+        }
+
+        return {
+            ...t,
+            kind: "expense",
+            displayCategory
+        };
     }
 
-    // Low-confidence categories should not be treated
-    // as confirmed spending categories.
-    if (
-        t.categoryConfidence === "LOW" ||
-        t.categoryConfidence === "UNKNOWN"
-    ) {
-        return { ...t, kind: "review", displayCategory };
-    }
-
-    return { ...t, kind: "expense", displayCategory };
+    return {
+        ...t,
+        kind: "review",
+        displayCategory
+    };
 }

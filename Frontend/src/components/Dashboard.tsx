@@ -74,10 +74,6 @@ const Icon = {
   ),
 };
 
-const upcomingBills = [
-  { name: "Adobe Creative Cloud", meta: "In 3 days", amount: 54.99, icon: Icon.Card },
-  { name: "Gym Membership", meta: "In 5 days", amount: 30.0, icon: Icon.Chart },
-];
 
 type SpendingCategory = {
     label: string;
@@ -346,13 +342,6 @@ export default function Dashboard() {
               })}
             </div>
           </div>
-
-          <div className="cc-card cc-stat">
-            <span className="cc-stat-label">Budget Left</span>
-            <div className="cc-stat-value">
-              $420.15 <span className="cc-stat-delta muted">8 days left</span>
-            </div>
-          </div>
         </section>
 
         <section className="cc-mid-row">
@@ -433,23 +422,7 @@ export default function Dashboard() {
     )}
 </div>
 
-          <div className="cc-card">
-            <h2>Upcoming Bills</h2>
-            <ul className="cc-activity-list">
-              {upcomingBills.map((b) => (
-                <li key={b.name}>
-                  <span className="cc-activity-icon">
-                    <b.icon />
-                  </span>
-                  <div className="cc-activity-text">
-                    <div className="cc-activity-name">{b.name}</div>
-                    <div className="cc-activity-meta">{b.meta}</div>
-                  </div>
-                  <span className="cc-activity-amount">${b.amount.toFixed(2)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          
         </section>
       </main>
   );
