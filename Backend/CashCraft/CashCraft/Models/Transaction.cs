@@ -13,6 +13,12 @@
 
         public string? Category { get; set; }
 
+        public string? PlaidPrimaryCategory { get; set; }
+
+        public string? PlaidDetailedCategory { get; set; }
+
+        public string? CategoryConfidence { get; set; }
+
         public int AccountId { get; set; }
 
         public Account? Account { get; set; }
