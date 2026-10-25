@@ -242,6 +242,9 @@ namespace CashCraft.Services
                                 Amount = plaidTransaction.amount,
                                 Date = plaidTransaction.date,
                                 Category = plaidTransaction.category?.FirstOrDefault(),
+                                PlaidPrimaryCategory = plaidTransaction.personal_finance_category?.primary,
+                                PlaidDetailedCategory = plaidTransaction.personal_finance_category?.detailed,
+                                CategoryConfidence = plaidTransaction.personal_finance_category?.confidence_level,
                                 AccountId = account.Id
                             };
 
@@ -254,6 +257,15 @@ namespace CashCraft.Services
                             existingTransaction.Date = plaidTransaction.date;
                             existingTransaction.Category = plaidTransaction.category?.FirstOrDefault();
                             existingTransaction.AccountId = account.Id;
+
+                            existingTransaction.PlaidPrimaryCategory =
+                                plaidTransaction.personal_finance_category?.primary;
+
+                            existingTransaction.PlaidDetailedCategory =
+                                plaidTransaction.personal_finance_category?.detailed;
+
+                            existingTransaction.CategoryConfidence =
+                                plaidTransaction.personal_finance_category?.confidence_level;
                         }
                     }
 
@@ -282,6 +294,14 @@ namespace CashCraft.Services
                         existingTransaction.Amount = plaidTransaction.amount;
                         existingTransaction.Date = plaidTransaction.date;
                         existingTransaction.Category = plaidTransaction.category?.FirstOrDefault();
+                        existingTransaction.PlaidPrimaryCategory =
+                            plaidTransaction.personal_finance_category?.primary;
+
+                        existingTransaction.PlaidDetailedCategory =
+                            plaidTransaction.personal_finance_category?.detailed;
+
+                        existingTransaction.CategoryConfidence =
+                            plaidTransaction.personal_finance_category?.confidence_level;
                         existingTransaction.AccountId = account.Id;
                     }
 
