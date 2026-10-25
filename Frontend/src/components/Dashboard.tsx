@@ -79,11 +79,6 @@ const upcomingBills = [
   { name: "Gym Membership", meta: "In 5 days", amount: 30.0, icon: Icon.Chart },
 ];
 
-function currency(n: number) {
-  const sign = n < 0 ? "-" : n > 0 ? "+" : "";
-  return `${sign}$${Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
 type SpendingCategory = {
     label: string;
     amount: number;

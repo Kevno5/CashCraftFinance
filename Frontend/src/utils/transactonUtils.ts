@@ -1,3 +1,4 @@
+
 import type { Transaction } from "../types/transactions";
 
 export type TransactionKind =
@@ -5,6 +6,7 @@ export type TransactionKind =
     | "expense"
     | "refund"
     | "transfer"
+    | "payment"
     | "review";
 
 export type ClassifiedTransaction = Transaction & {
@@ -12,48 +14,63 @@ export type ClassifiedTransaction = Transaction & {
     displayCategory: string;
 };
 
-// Display-only category corrections for known sandbox merchants.
-function getDisplayCategory(t: Transaction): string {
-    if (t.name.toLowerCase().includes("sparkfun")) {
-        return "Shopping";
-    }
-
-    return t.category || "Other";
+function formatCategory(category: string): string {
+    return category
+        .replaceAll("_", " ")
+        .toLowerCase()
+        .replace(/\b\w/g, char => char.toUpperCase());
 }
 
 export function classifyTransaction(
     t: Transaction
 ): ClassifiedTransaction {
-    const category = (t.category || "").toLowerCase();
-    const name = t.name.toLowerCase();
+    const primary = t.plaidPrimaryCategory;
+    const detailed = t.plaidDetailedCategory;
 
-    const displayCategory = getDisplayCategory(t);
+    const displayCategory = primary
+        ? formatCategory(primary)
+        : t.category || "Other";
 
-    // Explicit income categories take priority.
-    if (category === "income" || category === "payroll") {
-        return { ...t, kind: "income", displayCategory };
-    }
-
-    // The sandbox Gusto record has an unusual positive amount.
-    // Don't assume the direction is correct without verification.
-    if (name.includes("gusto pay")) {
-        return { ...t, kind: "review", displayCategory };
-    }
-
-    // Transfers and credit card payments are not new spending.
-    if (category === "transfer" || category === "payment") {
+    // Do not treat transfers as income or spending.
+    if (
+        primary === "TRANSFER_IN" ||
+        primary === "TRANSFER_OUT"
+    ) {
         return { ...t, kind: "transfer", displayCategory };
     }
 
-    // Plaid normally uses negative amounts for incoming money.
-    // Without an income category, treat these as credits/refunds.
+    // Credit card and loan payments aren't new spending.
+    if (primary === "LOAN_PAYMENTS") {
+        return { ...t, kind: "payment", displayCategory };
+    }
+
+    // Income must be identified as income and be incoming.
+    if (primary === "INCOME") {
+        return {
+            ...t,
+            kind: t.amount < 0 ? "income" : "review",
+            displayCategory: "Income"
+        };
+    }
+
+    // Handle negative amounts in other categories as credits.
     if (t.amount < 0) {
         return { ...t, kind: "refund", displayCategory };
     }
 
-    if (t.amount > 0) {
-        return { ...t, kind: "expense", displayCategory };
+    // If Plaid has no modern category, don't guess.
+    if (!primary || !detailed || t.amount === 0) {
+        return { ...t, kind: "review", displayCategory };
     }
 
-    return { ...t, kind: "review", displayCategory };
+    // Low-confidence categories should not be treated
+    // as confirmed spending categories.
+    if (
+        t.categoryConfidence === "LOW" ||
+        t.categoryConfidence === "UNKNOWN"
+    ) {
+        return { ...t, kind: "review", displayCategory };
+    }
+
+    return { ...t, kind: "expense", displayCategory };
 }
