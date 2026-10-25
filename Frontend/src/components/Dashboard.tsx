@@ -67,15 +67,6 @@ const Icon = {
   ),
 };
 
-const nav = [
-  { label: "Dashboard", icon: Icon.Grid, active: true },
-  { label: "Transactions", icon: Icon.List },
-  { label: "Budgets", icon: Icon.Pie },
-  { label: "Goals", icon: Icon.Target },
-  { label: "Insights", icon: Icon.Chart },
-  { label: "Settings", icon: Icon.Gear },
-];
-
 const spendingCategories = [
   { label: "Groceries", amount: 420, color: "#2ee6a6" },
   { label: "Dining Out", amount: 300, color: "#4d8bf5" },
@@ -158,32 +149,7 @@ function FlowChart({ data }: { data: typeof monthlyFlow }) {
 
 export default function Dashboard() {
   return (
-    <div className="cc-shell">
-      <aside className="cc-sidebar">
-        <div className="cc-logo">
-          <span className="cc-logo-mark">
-            <Icon.Gear />
-          </span>
-          Cash Craft
-        </div>
 
-        <nav className="cc-nav">
-          {nav.map((item) => (
-            <button key={item.label} className={`cc-nav-item ${item.active ? "active" : ""}`}>
-              <item.icon />
-              {item.label}
-            </button>
-          ))}
-        </nav>
-
-        <div className="cc-user">
-          <div className="cc-avatar" />
-          <div>
-            <div className="cc-user-name">Alex Mercer</div>
-            <div className="cc-user-plan">PRO Creator Plan</div>
-          </div>
-        </div>
-      </aside>
 
       <main className="cc-main">
         <header className="cc-header">
@@ -296,6 +262,5 @@ export default function Dashboard() {
           </div>
         </section>
       </main>
-    </div>
   );
 }

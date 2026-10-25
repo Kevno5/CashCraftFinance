@@ -1,7 +1,8 @@
 import { useState } from "react";
-import Sidebar, { type Page } from "./Sidebar";
 import "./Dashboard.css";
 import "./Pages.css";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../Context/AuthContext";
 
 // TODO: load from GET /api/Users/{userId} (or the login response) once login is merged
 const sampleUser = { name: "Alex Mercer", email: "alex@example.com" };
@@ -12,17 +13,26 @@ const sampleLinkedAccounts = [
   { id: 2, name: "Sample Credit Card", type: "credit" },
 ];
 
-type SettingsProps = {
-  onNavigate?: (page: Page) => void;
-};
 
-export default function Settings({ onNavigate }: SettingsProps) {
+
+export default function Settings() {
+  const navigate = useNavigate();
+  const { setUser } = useAuth();
   const [name, setName] = useState(sampleUser.name);
   const [email, setEmail] = useState(sampleUser.email);
   const [currency, setCurrency] = useState("USD");
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [budgetAlerts, setBudgetAlerts] = useState(true);
   const [message, setMessage] = useState("");
+
+  function handleLogout() {
+  sessionStorage.removeItem("user");
+  sessionStorage.removeItem("token");
+
+  setUser(null);
+    
+  navigate("/login", {replace: true});
+}
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +45,6 @@ export default function Settings({ onNavigate }: SettingsProps) {
   };
 
   return (
-    <div className="cc-shell">
-      <Sidebar active="Settings" onNavigate={onNavigate} />
 
       <main className="cc-main">
         <header className="cc-header">
@@ -126,14 +134,15 @@ export default function Settings({ onNavigate }: SettingsProps) {
                 <div className="cc-subtext">Sign out of Cash Craft on this device</div>
               </div>
               {/* TODO: clear the saved login token once login is merged */}
-              <button className="cc-btn-danger" disabled>Log Out</button>
+              <button className="cc-btn-danger" onClick={handleLogout}>Log Out</button>
             </div>
           </div>
         </div>
       </main>
-    </div>
   );
 }
+
+
 
 function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
   return (

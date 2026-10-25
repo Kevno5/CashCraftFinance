@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Sidebar, { type Page } from "./Sidebar";
 import "./Dashboard.css";
 import "./Pages.css";
 
@@ -31,11 +30,7 @@ function daysLeft(date: string | null) {
   return `${days} days left`;
 }
 
-type GoalsProps = {
-  onNavigate?: (page: Page) => void;
-};
-
-export default function Goals({ onNavigate }: GoalsProps) {
+export default function Goals() {
   const [goals, setGoals] = useState<Goal[]>(sampleGoals);
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
@@ -75,8 +70,7 @@ export default function Goals({ onNavigate }: GoalsProps) {
   const handleDelete = (id: number) => setGoals(goals.filter((g) => g.id !== id));
 
   return (
-    <div className="cc-shell">
-      <Sidebar active="Goals" onNavigate={onNavigate} />
+    
 
       <main className="cc-main">
         <header className="cc-header">
@@ -165,6 +159,5 @@ export default function Goals({ onNavigate }: GoalsProps) {
           </section>
         )}
       </main>
-    </div>
   );
 }
