@@ -58,6 +58,13 @@ namespace CashCraft.Controllers
                 );
             return Ok("Transactions saved");
         }
+
+        [HttpPost("link-token/{userId}")]
+        public async Task<IActionResult> CreateLinkToken(int userId)
+        {
+            var linkToken = await _plaidService.CreateLinkTokenAsync(userId);
+            return Ok(new { linkToken });
+        }
     }
 
     public class PublicTokenRequest

@@ -327,6 +327,34 @@ namespace CashCraft.Services
             }
         }
 
+        public async Task<string?> CreateLinkTokenAsync(int userId)
+        {
+            var request = new
+            {
+                client_id = _configuration["Plaid:ClientId"],
+                secret = _configuration["Plaid:Secret"],
+                client_name = "CashCraft",
+                user = new
+                {
+                    client_user_id = userId.ToString(),
+                },
+                products = new[] { "transactions" },
+                country_codes = new[] { "US" },
+                language = "en"
+            };
+
+            var response = await _httpClient.PostAsJsonAsync(
+                "/link/token/create",
+                request);
+
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content
+                .ReadFromJsonAsync<PlaidLinkToken> ();
+
+            return result?.link_token;
+        }
+
         // Stores the response from creating a sandbox public token
         public class SandboxPublicTokenResponse
         {
@@ -340,6 +368,11 @@ namespace CashCraft.Services
             public string? access_token { get; set; }
             public string? item_id { get; set; }
             public string? request_id { get; set; }
+        }
+
+        public class PlaidLinkToken
+        {
+            public string? link_token { get; set; }
         }
     }
 }
