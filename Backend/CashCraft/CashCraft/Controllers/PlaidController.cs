@@ -1,9 +1,11 @@
+using CashCraft.Extensions;
 using CashCraft.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Runtime.CompilerServices;
 
 namespace CashCraft.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class PlaidController : ControllerBase
@@ -32,6 +34,8 @@ namespace CashCraft.Controllers
             int userId,
             [FromBody] PublicTokenRequest request)
         {
+            if (User.GetUserId() != userId) return Forbid();
+
             var result =
                 await _plaidService.ExchangePublicTokenAsync(
                     request.PublicToken,
@@ -44,18 +48,19 @@ namespace CashCraft.Controllers
         [HttpPost("save-accounts/{userId}")]
         public async Task<IActionResult> SaveAccounts(int userId)
         {
+            if (User.GetUserId() != userId) return Forbid();
+
             await _plaidService.SavePlaidAccountsAsync(userId);
 
             return Ok("Plaid accounts saved");
         }
 
-
         [HttpPost("save-transactions/{userId}")]
-        public async Task<IActionResult> SaveTransactions (int userId)
+        public async Task<IActionResult> SaveTransactions(int userId)
         {
-            await _plaidService.SavePlaidTransactionsAsync(
-                userId
-                );
+            if (User.GetUserId() != userId) return Forbid();
+
+            await _plaidService.SavePlaidTransactionsAsync(userId);
             return Ok("Transactions saved");
         }
 

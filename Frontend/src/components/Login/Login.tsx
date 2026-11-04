@@ -1,7 +1,8 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { useAuth } from "../../Context/AuthContext";
+import axiosClient from "../../api/axiosClient";
 // import "../Register/Register.css";
 
 function Login() {
@@ -25,47 +26,31 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "https://localhost:7253/api/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            email: email.trim(),
-            password
-          })
-        }
-      );
-
-      if (!response.ok) {
-        setError(
-          response.status === 401
-            ? "Incorrect email or password."
-            : "Login failed. Please try again."
-        );
-        return;
-      }
-
-      const data = await response.json();
+      const { data } = await axiosClient.post("/api/auth/login", {
+        email: email.trim(),
+        password,
+      });
 
       const loggedInUser = {
         id: data.userId,
         name: data.name,
-        email: data.email
+        email: data.email,
       };
 
       setUser(loggedInUser);
-
       sessionStorage.setItem("user", JSON.stringify(loggedInUser));
       sessionStorage.setItem("token", data.token);
-
       navigate("/dashboard");
-
     } catch (err) {
-      console.error("Login request failed:", err);
-      setError("Unable to connect to the backend.");
+      if (axios.isAxiosError(err) && err.response) {
+        setError(
+          err.response.status === 401
+            ? "Incorrect email or password."
+            : "Login failed. Please try again."
+        );
+      } else {
+        setError("Unable to connect to the backend.");
+      }
     } finally {
       setLoading(false);
     }

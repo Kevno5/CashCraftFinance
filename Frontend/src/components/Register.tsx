@@ -1,5 +1,7 @@
-import {useState} from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
+import axiosClient from "../api/axiosClient";
 import "./Register.css";
 
 function Register() {
@@ -7,59 +9,57 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleRegister = async () => {
-  setError("");
+    setError("");
 
-  if (!username.trim() || !email.trim() || !password) {
-    setError("Please fill in all fields.");
-    return;
-  }
-
-  if (password.length < 8) {
-    setError("Password must be at least 8 characters.");
-    return;
-  }
-
-  if (!email.includes("@")) {
-    setError("Please enter a valid email address.");
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      "https://localhost:7253/api/auth/register",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name: username.trim(),
-          email: email.trim(),
-          password
-        })
-      }
-    );
-
-    if (!response.ok) {
-      if (response.status === 409) {
-        setError("An account with this email already exists.");
-      } else {
-        setError("Registration failed. Please try again.");
-      }
+    if (!username.trim() || !email.trim() || !password) {
+      setError("Please fill in all fields.");
       return;
     }
 
-    // Registration successful!
-    navigate("/login");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
 
-  } catch (err) {
-    console.error("Registration request failed:", err);
-    setError("Unable to connect to the backend.");
-  }
-};
+    if (!email.includes("@")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await axiosClient.post("/api/auth/register", {
+        name: username.trim(),
+        email: email.trim(),
+        password,
+      });
+
+      // Registration successful!
+      navigate("/login");
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response) {
+        if (err.response.status === 409) {
+          setError("An account with this email already exists.");
+        } else if (err.response.status === 400) {
+          setError(
+            "Invalid details. Password needs at least 8 characters, including a letter and a number."
+          );
+        } else {
+          setError("Registration failed. Please try again.");
+        }
+      } else {
+        console.error("Registration request failed:", err);
+        setError("Unable to connect to the backend.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="register-page">
@@ -71,7 +71,7 @@ function Register() {
         <h1>Cash Craft</h1>
 
         <p className="register-subtitle">
-          Log in to manage your personal economy
+          Create your account to manage your personal economy
         </p>
 
         <div className="register-form">
@@ -98,7 +98,13 @@ function Register() {
 
           {error && <p className="register-error">{error}</p>}
 
-          <button onClick={handleRegister}>Create Account</button>
+          <button onClick={handleRegister} disabled={loading}>
+            {loading ? "Creating account..." : "Create Account"}
+          </button>
+
+          <p>
+            Already have an account? <Link to="/login">Log in</Link>
+          </p>
         </div>
 
       </div>
