@@ -28,7 +28,7 @@ export default function PlaidLinkSession({
 const { open, ready, error } = usePlaidLink({
     token: linkToken,
 
-    onSuccess: async (publicToken, metadata) => {
+    onSuccess: async (publicToken) => {
         if (!publicToken) {
             console.error("Plaid did not return a public token");
             onComplete();
@@ -36,9 +36,6 @@ const { open, ready, error } = usePlaidLink({
         }
 
         successRef.current = true;
-
-        console.log("Plaid connection successful");
-        console.log("Selected accounts:", metadata.accounts);
 
         try {
             await exchangePublicToken(userId, publicToken);
@@ -81,7 +78,6 @@ const { open, ready, error } = usePlaidLink({
 
         openedRef.current = true;
 
-        console.log("Opening Plaid Link");
         open();
 
     }, [ready, open, error]);

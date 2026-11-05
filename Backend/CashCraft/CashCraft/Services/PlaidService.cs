@@ -329,16 +329,6 @@ namespace CashCraft.Services
 
         public async Task<string?> CreateLinkTokenAsync(int userId)
         {
-
-            Console.WriteLine(
-    $"Client ID exists: {!string.IsNullOrEmpty(_configuration["Plaid:ClientId"])}"
-);
-
-            Console.WriteLine(
-                $"Secret exists: {!string.IsNullOrEmpty(_configuration["Plaid:Secret"])}"
-            );
-
-
             var request = new
             {
                 client_id = _configuration["Plaid:ClientId"],
@@ -356,10 +346,6 @@ namespace CashCraft.Services
             var response = await _httpClient.PostAsJsonAsync(
                 "/link/token/create",
                 request);
-
-            var errorBody = await response.Content.ReadAsStringAsync();
-
-            Console.WriteLine(errorBody);
 
             response.EnsureSuccessStatusCode();
 
