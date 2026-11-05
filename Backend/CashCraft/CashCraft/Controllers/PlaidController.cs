@@ -67,6 +67,8 @@ namespace CashCraft.Controllers
         [HttpPost("link-token/{userId}")]
         public async Task<IActionResult> CreateLinkToken(int userId)
         {
+            if (User.GetUserId() != userId) return Forbid();
+
             var linkToken = await _plaidService.CreateLinkTokenAsync(userId);
             return Ok(new { linkToken });
         }

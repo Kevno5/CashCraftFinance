@@ -1,53 +1,67 @@
-import {useAuth}  from "../Context/AuthContext";
-import { useState, useEffect } from "react";
-import { createLinkToken, exchangePublicToken, savePlaidAccounts, savePlaidTransactions } from "../api/plaidApi";
-import { usePlaidLink } from "react-plaid-link";
+
+import { useState, useCallback } from "react";
+import { useAuth } from "../Context/AuthContext";
+import { createLinkToken } from "../api/plaidApi";
+import PlaidLinkSession from "./PlaidLinkSession";
 
 interface PlaidLinkButtonProps {
     onLinked: () => void;
 }
 
-export default function PlaidLinkButton({onLinked}: PlaidLinkButtonProps) {
+export default function PlaidLinkButton({
+    onLinked
+}: PlaidLinkButtonProps) {
     const { user } = useAuth();
+
     const [linkToken, setLinkToken] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [sessionId, setSessionId] = useState(0);
 
-    useEffect(() => {
-        if(!user) return;
+    async function handleConnectBank() {
+        if (!user || loading || linkToken) return;
 
-        const userId = user.id;
+        setLoading(true);
 
-        async function fetchLinkToken() {
-         const token = await createLinkToken(userId);
+        try {
+            const token = await createLinkToken(user.id);
 
-         setLinkToken(token);
-        }
-        fetchLinkToken();
-        
-
-    }, [user?.id]);
-
-    const { open, ready } = usePlaidLink({
-        token: linkToken,
-        onSuccess: async(publicToken) => {
-            console.log("Plaid connection successful")
-
-            if(!user || !publicToken) return;
-
-            try{
-                await exchangePublicToken(user.id, publicToken);
-                await savePlaidAccounts(user.id);
-                await savePlaidTransactions(user.id);
-
-                onLinked()
-            } catch (error) {
-                console.error("Plaid connection error", error)
+            if (!token) {
+                throw new Error("No Plaid link token was returned");
             }
+
+            setSessionId(prev => prev + 1);
+            setLinkToken(token);
+
+        } catch (error) {
+            console.error("Failed to create link token:", error);
+        } finally {
+            setLoading(false);
         }
-    });
+    }
+
+    const handleComplete = useCallback(() => {
+        setLinkToken(null);
+    }, []);
 
     return (
-        <button className="plaid-link-button" onClick={open} disabled={!ready}> 
-            Connect Bank Account
-        </button>
-    )
+        <>
+            <button
+                className="plaid-link-button"
+                onClick={handleConnectBank}
+                disabled={!user || loading || !!linkToken}
+            >
+                {loading ? "Connecting..." : "Connect Bank Account"}
+            </button>
+
+            {user && linkToken && (
+                <PlaidLinkSession
+                    key={sessionId}
+                    linkToken={linkToken}
+                    userId={user.id}
+                    onLinked={onLinked}
+                    onComplete={handleComplete}
+                />
+            )}
+        </>
+    );
 }
