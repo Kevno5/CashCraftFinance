@@ -71,5 +71,25 @@ namespace CashCraft.Controllers
                 email = user.Email
             });
         }
+
+        // Changes the logged-in user's password
+        [Authorize]
+        [HttpPut("password")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
+        {
+            var userId = User.GetUserId();
+            if (userId == null) return Unauthorized();
+
+            var result = await _auth.ChangePasswordAsync(userId.Value, request);
+
+            if (result.Success)
+                return Ok(new MessageResponse(result.Message));
+
+            var errors = result.Field == null
+                ? null
+                : new Dictionary<string, string[]> { [result.Field] = new[] { result.Message } };
+
+            return BadRequest(new MessageResponse(result.Message, errors));
+        }
     }
 }
