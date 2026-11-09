@@ -1,5 +1,7 @@
 using CashCraft.DTOs;
+using CashCraft.Extensions;
 using CashCraft.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CashCraft.Controllers
@@ -48,6 +50,25 @@ namespace CashCraft.Controllers
                 userId = result.UserId,
                 name = result.Name,
                 email = result.Email
+            });
+        }
+
+        // Returns the logged-in user's profile, read from the JWT token
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> Me()
+        {
+            var userId = User.GetUserId();
+            if (userId == null) return Unauthorized();
+
+            var user = await _auth.GetUserByIdAsync(userId.Value);
+            if (user == null) return Unauthorized();
+
+            return Ok(new
+            {
+                userId = user.Id,
+                name = user.Name,
+                email = user.Email
             });
         }
     }

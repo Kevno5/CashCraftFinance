@@ -53,5 +53,10 @@ namespace CashCraft.Services
             var token = _jwt.CreateToken(user);
             return new LoginResult(true, "Login successful.", user.Id, user.Name, user.Email, token);
         }
+
+        public async Task<User?> GetUserByIdAsync(int id)
+        {
+            return await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
+        }
     }
 }

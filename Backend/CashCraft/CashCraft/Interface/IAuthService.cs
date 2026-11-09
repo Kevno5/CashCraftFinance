@@ -1,4 +1,5 @@
 using CashCraft.DTOs;
+using CashCraft.Models;
 
 namespace CashCraft.Interface
 {
@@ -6,5 +7,6 @@ namespace CashCraft.Interface
     {
         Task<RegisterResult> RegisterAsync(RegisterRequest request);
         Task<LoginResult> LoginAsync(LoginRequest request);
+        Task<User?> GetUserByIdAsync(int id);
     }
 }
