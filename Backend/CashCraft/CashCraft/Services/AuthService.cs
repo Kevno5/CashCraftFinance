@@ -58,5 +58,28 @@ namespace CashCraft.Services
         {
             return await _db.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
+
+        public async Task<ChangePasswordResult> ChangePasswordAsync(int userId, ChangePasswordRequest request)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+                return new ChangePasswordResult(false, "User not found.");
+
+            var check = _hasher.VerifyHashedPassword(user, user.PasswordHash, request.CurrentPassword);
+            if (check == PasswordVerificationResult.Failed)
+                return new ChangePasswordResult(false, "Current password is incorrect.", "currentPassword");
+
+            if (!request.NewPassword.Any(char.IsLetter) || !request.NewPassword.Any(char.IsDigit))
+                return new ChangePasswordResult(false, "Password must contain at least one letter and one number.", "newPassword");
+
+            if (request.NewPassword == request.CurrentPassword)
+                return new ChangePasswordResult(false, "New password must be different from the current password.", "newPassword");
+
+            user.PasswordHash = _hasher.HashPassword(user, request.NewPassword);
+            await _db.SaveChangesAsync();
+
+            return new ChangePasswordResult(true, "Password changed successfully.");
+        }
     }
 }

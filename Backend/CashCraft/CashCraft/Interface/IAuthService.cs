@@ -8,5 +8,6 @@ namespace CashCraft.Interface
         Task<RegisterResult> RegisterAsync(RegisterRequest request);
         Task<LoginResult> LoginAsync(LoginRequest request);
         Task<User?> GetUserByIdAsync(int id);
+        Task<ChangePasswordResult> ChangePasswordAsync(int userId, ChangePasswordRequest request);
     }
 }
