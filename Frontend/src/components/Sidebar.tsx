@@ -89,16 +89,24 @@ export default function Sidebar() {
   ))}
 </nav>
 
-      <div className="cc-user">
-        <div className="cc-avatar" />
+           <div className="cc-user">
+        <div className="cc-avatar">{initials(user?.name)}</div>
         <div>
-          {/* TODO: show the logged-in user once login is merged */}
-          <div className="cc-user-name">
-            {user?.name ?? "Guest"}
-          </div>
-          <div className="cc-user-plan">PRO Creator Plan</div>
+          <div className="cc-user-name">{user?.name ?? "Guest"}</div>
+          <div className="cc-user-plan">{user?.email ?? ""}</div>
         </div>
       </div>
     </aside>
   );
 }
+
+function initials(name?: string) {
+  if (!name) return "?";
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join("");
+}
+  
