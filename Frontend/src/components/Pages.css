@@ -137,3 +137,12 @@
   .cc-page-stats { grid-template-columns: 1fr; }
   .cc-setting-row { flex-direction: column; align-items: flex-start; }
 }
+
+
+/* Settings: messages and password form */
+.cc-error-text { color: var(--danger); font-size: 12.5px; margin: 0; }
+.cc-success-text { color: var(--accent); font-size: 13px; margin: 8px 0 0; }
+.cc-password-form { margin: 12px 0 4px; max-width: 360px; width: 100%; }
+.cc-password-form label { width: 100%; }
+.cc-btn-row { display: flex; gap: 10px; }
+.cc-activity-amount { margin-left: auto; font-weight: 600; }
