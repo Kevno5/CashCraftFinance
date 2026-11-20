@@ -1,55 +1,59 @@
-﻿using CashCraft.Interface;
-using CashCraft.Services;
-using Microsoft.AspNetCore.Http;
+﻿using CashCraft.Extensions;
+using CashCraft.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CashCraft.Controllers
 {
+    [Authorize]
     [Route("api/Accounts")]
     [ApiController]
     public class AccountsController : ControllerBase
     {
-        // Service used to handle account data
         private readonly IAccountsService _accountService;
 
-        // Constructor that gets the account service
         public AccountsController(IAccountsService accountsService)
         {
             _accountService = accountsService;
         }
 
-        // GET request to get every users accounts
+        // Returns only the logged-in user's accounts
         [HttpGet]
         public async Task<ActionResult> GetAccounts()
         {
-            var accounts = await _accountService.GetAccountsAsync();
+            var currentUserId = User.GetUserId();
+            if (currentUserId == null) return Unauthorized();
+
+            var accounts = await _accountService.GetAccountsByUserIdAsync(currentUserId.Value);
             return Ok(accounts);
         }
 
-        // GET request to get one account by its account ID
+        // Returns one account, only if it belongs to the logged-in user
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAccountById(int id)
         {
-            var accounts = await _accountService.GetAccountByIdAsync(id);
+            var currentUserId = User.GetUserId();
+            if (currentUserId == null) return Unauthorized();
 
-            // Returns a 404 error if account does not exist
-            if(accounts == null)
+            var account = await _accountService.GetAccountByIdAsync(id);
+
+            if (account == null || account.UserId != currentUserId.Value)
             {
                 return NotFound();
             }
-            return Ok(accounts);
+            return Ok(account);
         }
 
-        // GET request to get all accounts that belong to a specific user
+        // Returns the accounts of a user, only if that user is the logged-in user
         [HttpGet("user/{userId}")]
         public async Task<ActionResult> GetAccountsByUserId(int userId)
         {
-            var accounts = await _accountService.GetAccountsByUserIdAsync(userId);
+            var currentUserId = User.GetUserId();
+            if (currentUserId == null) return Unauthorized();
+            if (userId != currentUserId.Value) return Forbid();
 
+            var accounts = await _accountService.GetAccountsByUserIdAsync(userId);
             return Ok(accounts);
         }
-
-
-
     }
 }

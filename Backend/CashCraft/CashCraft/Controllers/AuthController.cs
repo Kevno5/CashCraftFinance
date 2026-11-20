@@ -1,5 +1,7 @@
 using CashCraft.DTOs;
+using CashCraft.Extensions;
 using CashCraft.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CashCraft.Controllers
@@ -49,6 +51,45 @@ namespace CashCraft.Controllers
                 name = result.Name,
                 email = result.Email
             });
+        }
+
+        // Returns the logged-in user's profile, read from the JWT token
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> Me()
+        {
+            var userId = User.GetUserId();
+            if (userId == null) return Unauthorized();
+
+            var user = await _auth.GetUserByIdAsync(userId.Value);
+            if (user == null) return Unauthorized();
+
+            return Ok(new
+            {
+                userId = user.Id,
+                name = user.Name,
+                email = user.Email
+            });
+        }
+
+        // Changes the logged-in user's password
+        [Authorize]
+        [HttpPut("password")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
+        {
+            var userId = User.GetUserId();
+            if (userId == null) return Unauthorized();
+
+            var result = await _auth.ChangePasswordAsync(userId.Value, request);
+
+            if (result.Success)
+                return Ok(new MessageResponse(result.Message));
+
+            var errors = result.Field == null
+                ? null
+                : new Dictionary<string, string[]> { [result.Field] = new[] { result.Message } };
+
+            return BadRequest(new MessageResponse(result.Message, errors));
         }
     }
 }

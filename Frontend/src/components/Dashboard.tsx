@@ -6,7 +6,8 @@ import { getTransactionsByUserId } from "../api/transactionsApi";
 import type { Account } from "../types/account";
 import type { Transaction } from "../types/transactions";
 import { classifyTransaction } from "../utils/transactonUtils";
-
+import PlaidLinkButton from "./PlaidLinkButton";
+ 
 // ---- Icons (inline SVG, no extra dependency needed) ----
 const Icon = {
   Grid: () => (
@@ -88,13 +89,16 @@ function DonutChart({ data }: { data: SpendingCategory[] }) {
   }
   const radius = 46;
   const circumference = 2 * Math.PI * radius;
-  let offsetAcc = 0;
 
   return (
     <svg viewBox="0 0 120 120" className="donut">
-      {data.map((d) => {
+      {data.map((d, index) => {
         const fraction = d.amount / total;
         const dash = fraction * circumference;
+        const previousAmount = data
+              .slice(0, index)
+              .reduce((sum, item) => sum + item.amount, 0);
+        const offset = (previousAmount / total) * circumference;
         const el = (
           <circle
             key={d.label}
@@ -105,11 +109,10 @@ function DonutChart({ data }: { data: SpendingCategory[] }) {
             stroke={d.color}
             strokeWidth="14"
             strokeDasharray={`${dash} ${circumference - dash}`}
-            strokeDashoffset={-offsetAcc}
+            strokeDashoffset={-offset}
             transform="rotate(-90 60 60)"
           />
         );
-        offsetAcc += dash;
         return el;
       })}
     </svg>
@@ -157,19 +160,15 @@ export default function Dashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    if(!user) {
-      setAccounts([]);
-      setTransactions([]);
-      setLoading(false);
-      return
-    }
+    if(!user) return;
 
     let cancelled = false;
 
     async function loadDashboardData() {
-      setLoading(false);
+      setLoading(true);
       setError("");
 
       try {
@@ -199,11 +198,15 @@ export default function Dashboard() {
     
 
     loadDashboardData();
-
+    
     return () => {
       cancelled = true;
     };
-  }, [user?.id]);
+  }, [user?.id, refreshKey]);
+
+  function handlePlaidLinked() {
+      setRefreshKey(prev => prev + 1);
+    }
 
   const classifiedTransactions = transactions.map(classifyTransaction);
 
@@ -308,7 +311,7 @@ export default function Dashboard() {
             <h1>Good morning, {user?.name ?? "Guest"}</h1>
             <p>Here's a breakdown of your personal economy today.</p>
           </div>
-          <button className="cc-btn-primary">Link Bank Account</button>
+          <PlaidLinkButton onLinked={handlePlaidLinked}/>
         </header>
 
         <section className="cc-top-row">
