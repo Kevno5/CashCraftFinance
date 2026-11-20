@@ -5,6 +5,7 @@ import Register from "./components/Register";
 import Settings from "./components/Settings";
 import Login from "./components/Login/Login";
 import Goals from "./components/Goals";
+import Insights from "./components/Insights";
 import Transactions from "./components/Transactions";
 import ComingSoon from "./components/ComingSoon";
 import { AuthProvider } from "./Context/AuthContext";
@@ -34,15 +35,7 @@ function App() {
               }
             />
             <Route path="/goals" element={<Goals />} />
-            <Route
-              path="/insights"
-              element={
-                <ComingSoon
-                  title="Insights"
-                  message="Insights are coming soon."
-                />
-              }
-            />
+            <Route path="/insights" element={<Insights />} />
             <Route path="/settings" element={<Settings/>}/>
             <Route
               path="*"
