@@ -5,6 +5,9 @@ import Register from "./components/Register";
 import Settings from "./components/Settings";
 import Login from "./components/Login/Login";
 import Goals from "./components/Goals";
+import Insights from "./components/Insights";
+import Transactions from "./components/Transactions";
+import ComingSoon from "./components/ComingSoon";
 import { AuthProvider } from "./Context/AuthContext";
 import AppLayout from "./components/Layout/appLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -21,8 +24,28 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard/>}/>
+            <Route path="/transactions" element={<Transactions />} />
+            <Route
+              path="/budgets"
+              element={
+                <ComingSoon
+                  title="Budgets"
+                  message="Budgets are coming soon."
+                />
+              }
+            />
             <Route path="/goals" element={<Goals />} />
+            <Route path="/insights" element={<Insights />} />
             <Route path="/settings" element={<Settings/>}/>
+            <Route
+              path="*"
+              element={
+                <ComingSoon
+                  title="Page not found"
+                  message="That page doesn't exist."
+                />
+              }
+            />
           </Route>
         </Route>
       </Routes>
